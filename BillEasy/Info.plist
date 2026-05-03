@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AI_SERVICE_BASE_URL</key>
+	<string>$(AI_SERVICE_BASE_URL)</string>
+	<key>AI_SERVICE_TOKEN</key>
+	<string>$(AI_SERVICE_TOKEN)</string>
+	<key>API_BASE_URL</key>
+	<string>$(API_BASE_URL)</string>
+	<key>APP_AUTH_MODE</key>
+	<string>$(APP_AUTH_MODE)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>br.com.billeasy.googleoauth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>$(GOOGLE_OAUTH_REDIRECT_SCHEME)</string>
+			</array>
+		</dict>
+	</array>
+	<key>FRONTEND_BASE_URL</key>
+	<string>$(FRONTEND_BASE_URL)</string>
+	<key>GOOGLE_OAUTH_CLIENT_ID</key>
+	<string>$(GOOGLE_OAUTH_CLIENT_ID)</string>
+	<key>GOOGLE_OAUTH_REDIRECT_PATH</key>
+	<string>$(GOOGLE_OAUTH_REDIRECT_PATH)</string>
+	<key>GOOGLE_OAUTH_REDIRECT_SCHEME</key>
+	<string>$(GOOGLE_OAUTH_REDIRECT_SCHEME)</string>
+	<key>GOOGLE_WEB_CLIENT_ID</key>
+	<string>$(GOOGLE_WEB_CLIENT_ID)</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Precisamos acessar a câmera para capturar sua selfie de verificação.</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>Default Configuration</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+</dict>
+</plist>

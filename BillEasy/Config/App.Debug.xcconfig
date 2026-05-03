@@ -1,0 +1,4 @@
+#include "App.Shared.xcconfig"
+#include? "Secrets.xcconfig"
+
+// Debug uses the same public endpoints. Override locally via Secrets.xcconfig.

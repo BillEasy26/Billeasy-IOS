@@ -1,0 +1,4 @@
+#include "App.Shared.xcconfig"
+#include? "Secrets.xcconfig"
+
+// Release uses the same public endpoints. AI token must be injected via Secrets.xcconfig outside the repo.

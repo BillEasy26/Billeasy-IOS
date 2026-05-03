@@ -1,0 +1,13 @@
+// Public environment values safe to commit.
+// Secrets (AI token, etc.) live in Secrets.xcconfig, included optionally per configuration.
+
+// In .xcconfig files `//` starts a comment; use /$()/  to preserve https:// in values.
+API_BASE_URL = https:/$()/api.billeasy.com.br
+AI_SERVICE_BASE_URL = https:/$()/billeasy-ai-service.vercel.app
+FRONTEND_BASE_URL = https:/$()/bill-easy-v1.vercel.app
+APP_AUTH_MODE = remote
+AI_SERVICE_TOKEN =
+GOOGLE_OAUTH_CLIENT_ID = 444489557398-gonumrl58mpnkdjmig2g21kuns613e1v.apps.googleusercontent.com
+GOOGLE_WEB_CLIENT_ID = 444489557398-1kdum5pm1fsl47pq0tbf8botff0pm764.apps.googleusercontent.com
+GOOGLE_OAUTH_REDIRECT_SCHEME = com.googleusercontent.apps.444489557398-gonumrl58mpnkdjmig2g21kuns613e1v
+GOOGLE_OAUTH_REDIRECT_PATH = /oauth2redirect/google
