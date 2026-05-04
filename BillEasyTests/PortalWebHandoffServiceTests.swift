@@ -2,9 +2,10 @@ import Foundation
 import Testing
 @testable import BillEasy
 
+@Suite(.serialized)
 struct PortalWebHandoffServiceTests {
 
-    @Test("PortalWebHandoffService cria handoff para /localizar")
+    @Test("PortalWebHandoffService cria handoff para Localizar Devedor no web V2")
     @MainActor
     func fetchURLUsesExpectedRouteForDebtorLocator() async throws {
         let session = makeMockSession { request in
@@ -12,12 +13,9 @@ struct PortalWebHandoffServiceTests {
                 throw URLError(.badURL)
             }
 
-            #expect(url.path == "/api/auth/mobile-web-handoff")
+            #expect(url.path == "/auth/mobile-handoff")
             #expect(request.httpMethod == "POST")
-
-            let body = try bodyData(from: request)
-            let json = try #require(JSONSerialization.jsonObject(with: body) as? [String: String])
-            #expect(json["redirect"] == "/localizar")
+            #expect(request.httpBody == nil)
 
             return (
                 HTTPURLResponse(
@@ -28,7 +26,8 @@ struct PortalWebHandoffServiceTests {
                 )!,
                 Data("""
                 {
-                  "handoffUrl": "https://api.billeasy.com.br/api/auth/mobile-handoff?token=abc123"
+                  "token": "abc123",
+                  "expiraEm": "2026-05-03T19:00:00Z"
                 }
                 """.utf8)
             )
@@ -39,14 +38,23 @@ struct PortalWebHandoffServiceTests {
                 session: session,
                 environment: APIEnvironment(backendBaseURL: URL(string: "https://api.example.com")!)
             ),
-            mode: .remote
+            mode: .remote,
+            frontendBaseURL: URL(string: "http://localhost:3000")!
         )
 
         let handoffURL = try await service.fetchURL(for: .debtorLocator)
-        #expect(handoffURL.absoluteString == "https://api.billeasy.com.br/api/auth/mobile-handoff?token=abc123")
+        let components = try #require(URLComponents(url: handoffURL, resolvingAgainstBaseURL: false))
+        let queryItems = Dictionary(uniqueKeysWithValues: (components.queryItems ?? []).map { ($0.name, $0.value ?? "") })
+
+        #expect(components.scheme == "http")
+        #expect(components.host == "localhost")
+        #expect(components.port == 3000)
+        #expect(components.path == "/handoff")
+        #expect(queryItems["token"] == "abc123")
+        #expect(queryItems["next"] == "/app/localizar-devedor")
     }
 
-    @Test("PortalWebHandoffService cria handoff para /meu-plano")
+    @Test("PortalWebHandoffService cria handoff para Meu Plano no web V2")
     @MainActor
     func fetchURLUsesExpectedRouteForMyPlan() async throws {
         let session = makeMockSession { request in
@@ -54,9 +62,8 @@ struct PortalWebHandoffServiceTests {
                 throw URLError(.badURL)
             }
 
-            let body = try bodyData(from: request)
-            let json = try #require(JSONSerialization.jsonObject(with: body) as? [String: String])
-            #expect(json["redirect"] == "/meu-plano")
+            #expect(url.path == "/auth/mobile-handoff")
+            #expect(request.httpMethod == "POST")
 
             return (
                 HTTPURLResponse(
@@ -67,7 +74,8 @@ struct PortalWebHandoffServiceTests {
                 )!,
                 Data("""
                 {
-                  "handoffUrl": "https://api.billeasy.com.br/api/auth/mobile-handoff?token=xyz789"
+                  "token": "xyz789",
+                  "expiraEm": "2026-05-03T19:00:00Z"
                 }
                 """.utf8)
             )
@@ -78,11 +86,17 @@ struct PortalWebHandoffServiceTests {
                 session: session,
                 environment: APIEnvironment(backendBaseURL: URL(string: "https://api.example.com")!)
             ),
-            mode: .remote
+            mode: .remote,
+            frontendBaseURL: URL(string: "http://localhost:3000")!
         )
 
         let handoffURL = try await service.fetchURL(for: .myPlan)
-        #expect(handoffURL.absoluteString == "https://api.billeasy.com.br/api/auth/mobile-handoff?token=xyz789")
+        let components = try #require(URLComponents(url: handoffURL, resolvingAgainstBaseURL: false))
+        let queryItems = Dictionary(uniqueKeysWithValues: (components.queryItems ?? []).map { ($0.name, $0.value ?? "") })
+
+        #expect(components.path == "/handoff")
+        #expect(queryItems["token"] == "xyz789")
+        #expect(queryItems["next"] == "/app/conta/plano")
     }
 
     @Test("PortalWebHandoffService bloqueia o fluxo em modo local")
@@ -95,9 +109,9 @@ struct PortalWebHandoffServiceTests {
         }
     }
 
-    @Test("PortalWebHandoffService rejeita URL inválida vinda do backend")
+    @Test("PortalWebHandoffService rejeita token inválido vindo do backend")
     @MainActor
-    func fetchURLRejectsInvalidBackendURL() async {
+    func fetchURLRejectsInvalidBackendToken() async {
         let session = makeMockSession { request in
             guard let url = request.url else {
                 throw URLError(.badURL)
@@ -112,7 +126,8 @@ struct PortalWebHandoffServiceTests {
                 )!,
                 Data("""
                 {
-                  "handoffUrl": "%%%%"
+                  "token": "   ",
+                  "expiraEm": "2026-05-03T19:00:00Z"
                 }
                 """.utf8)
             )
@@ -123,7 +138,8 @@ struct PortalWebHandoffServiceTests {
                 session: session,
                 environment: APIEnvironment(backendBaseURL: URL(string: "https://api.example.com")!)
             ),
-            mode: .remote
+            mode: .remote,
+            frontendBaseURL: URL(string: "http://localhost:3000")!
         )
 
         await #expect(throws: PortalWebHandoffError.self) {
@@ -144,17 +160,15 @@ struct PortalWebHandoffServiceTests {
             refreshToken: "refresh-token-123"
         )
 
-        var requestStep = 0
+        let requestStep = RequestCounter()
         let session = makeMockSession { request in
             guard let url = request.url else {
                 throw URLError(.badURL)
             }
 
-            requestStep += 1
-
-            switch requestStep {
+            switch requestStep.increment() {
             case 1:
-                #expect(url.path == "/api/auth/mobile-web-handoff")
+                #expect(url.path == "/auth/mobile-handoff")
                 #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer expired-access-token")
 
                 return (
@@ -193,7 +207,7 @@ struct PortalWebHandoffServiceTests {
                 )
 
             case 3:
-                #expect(url.path == "/api/auth/mobile-web-handoff")
+                #expect(url.path == "/auth/mobile-handoff")
                 #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer renewed-access-token")
 
                 return (
@@ -205,7 +219,8 @@ struct PortalWebHandoffServiceTests {
                     )!,
                     Data("""
                     {
-                      "handoffUrl": "https://api.billeasy.com.br/api/auth/mobile-handoff?token=retry-ok"
+                      "token": "retry-ok",
+                      "expiraEm": "2026-05-03T19:00:00Z"
                     }
                     """.utf8)
                 )
@@ -221,12 +236,18 @@ struct PortalWebHandoffServiceTests {
                 environment: APIEnvironment(backendBaseURL: URL(string: "https://api.example.com")!),
                 securityContext: securityContext
             ),
-            mode: .remote
+            mode: .remote,
+            frontendBaseURL: URL(string: "http://localhost:3000")!
         )
 
         let handoffURL = try await service.fetchURL(for: .debtorLocator)
-        #expect(handoffURL.absoluteString == "https://api.billeasy.com.br/api/auth/mobile-handoff?token=retry-ok")
-        #expect(requestStep == 3)
+        let components = try #require(URLComponents(url: handoffURL, resolvingAgainstBaseURL: false))
+        let queryItems = Dictionary(uniqueKeysWithValues: (components.queryItems ?? []).map { ($0.name, $0.value ?? "") })
+
+        #expect(components.path == "/handoff")
+        #expect(queryItems["token"] == "retry-ok")
+        #expect(queryItems["next"] == "/app/localizar-devedor")
+        #expect(requestStep.value == 3)
     }
 
     private func makeMockSession(
@@ -291,6 +312,24 @@ struct PortalWebHandoffServiceTests {
             headerFields: ["Set-Cookie": "be_rt=\(refreshToken); Path=/; Secure; SameSite=Lax"]
         )!
         securityContext.captureSecurityState(from: refreshResponse, fallbackRequestURL: baseURL)
+    }
+}
+
+private final class RequestCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var storage = 0
+
+    func increment() -> Int {
+        lock.lock()
+        defer { lock.unlock() }
+        storage += 1
+        return storage
+    }
+
+    var value: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return storage
     }
 }
 

@@ -4,7 +4,7 @@
 // In .xcconfig files `//` starts a comment; use /$()/  to preserve https:// in values.
 API_BASE_URL = https:/$()/api.billeasy.com.br
 AI_SERVICE_BASE_URL = https:/$()/billeasy-ai-service.vercel.app
-FRONTEND_BASE_URL = https:/$()/bill-easy-v1.vercel.app
+FRONTEND_BASE_URL = https:/$()/www.billeasy.com.br
 APP_AUTH_MODE = remote
 AI_SERVICE_TOKEN =
 GOOGLE_OAUTH_CLIENT_ID = 444489557398-gonumrl58mpnkdjmig2g21kuns613e1v.apps.googleusercontent.com

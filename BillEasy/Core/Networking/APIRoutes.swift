@@ -44,7 +44,7 @@ enum WebAppRoute: String, CaseIterable {
     case perfil = "/perfil"
     case perfilDados = "/perfil/dados"
     case perfilSeguranca = "/perfil/seguranca"
-    case perfilPlano = "/perfil/plano"
+    case perfilPlano = "/app/conta/plano"
     case perfilAuditoria = "/perfil/auditoria"
     case mfaSetup = "/perfil/seguranca/2fa"
 
@@ -63,7 +63,7 @@ enum WebAppRoute: String, CaseIterable {
     case usuarios = "/usuarios"
     case empresas = "/empresas"
     case devedores = "/devedores"
-    case localizar = "/localizar"
+    case localizar = "/app/localizar-devedor"
 }
 
 /// Destinos do site (frontend web) que o app pode abrir no navegador.
@@ -150,7 +150,7 @@ enum APIRoutes {
         static func oauthVincular(_ provedor: String) -> String    { "/auth/oauth/\(provedor)/vincular" }
         static func oauthDesvincular(_ provedor: String) -> String { "/auth/oauth/\(provedor)" }
 
-        // Aliases iOS legados (mantidos para não quebrar chamadas existentes)
+        // Alias legado mantido para compatibilidade com referências antigas; o fluxo V2 usa `mobileHandoff`.
         static let mobileWebHandoff   = "/api/auth/mobile-web-handoff"
         static let validateResetToken = "/api/auth/validar-token-reset"
         static let verifyEmail        = "/api/auth/verificar-email"
@@ -163,9 +163,9 @@ enum APIRoutes {
 
     // MARK: - Session
 
-    /// Endpoint legado iOS — use `Auth.me` para o path alinhado com Android.
+    /// Endpoint de sessão alinhado com o backend atual e o frontend web.
     enum Session {
-        static let me = "/api/session/me"
+        static let me = Auth.me
     }
 
     // MARK: - MFA

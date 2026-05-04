@@ -5,15 +5,14 @@ Este documento trava o alinhamento entre os botoes principais do app iOS e as ro
 ## Fonte de verdade
 
 - Web frontend:
-  - `/Users/samueljammes/Downloads/BillEasy_V1/billeasy-frontend/src/services/api.ts`
-  - `/Users/samueljammes/Downloads/BillEasy_V1/billeasy-frontend/src/components/ai/ContractGeneratorModal.vue`
-  - `/Users/samueljammes/Downloads/BillEasy_V1/billeasy-frontend/src/components/ContratoDigitalModal.vue`
-  - `/Users/samueljammes/Downloads/BillEasy_V1/billeasy-frontend/src/components/ContratoDevedorModal.vue`
-  - `/Users/samueljammes/Downloads/BillEasy_V1/billeasy-frontend/src/components/PagamentoDevedorModal.vue`
+  - `/Users/samueljammes/Developer/BilleasyV2/billeasy-frontend/src/router.tsx`
+  - `/Users/samueljammes/Developer/BilleasyV2/billeasy-frontend/src/app/routes/HandoffPage.tsx`
+  - `/Users/samueljammes/Developer/BilleasyV2/billeasy-frontend/src/components/layout/Sidebar.tsx`
+  - `/Users/samueljammes/Developer/BilleasyV2/billeasy-frontend/src/components/features/contratos/ContratoWizard.tsx`
 - Backend:
-  - `/Users/samueljammes/Downloads/BillEasy_V1/src/main/java/br/com/billyeasy/backend/api/controller/ia/IaController.java`
-  - `/Users/samueljammes/Downloads/BillEasy_V1/src/main/java/br/com/billyeasy/backend/api/controller/contrato/ContratoController.java`
-  - `/Users/samueljammes/Downloads/BillEasy_V1/src/main/java/br/com/billyeasy/backend/api/dto/input/ia/FluxoIaInput.java`
+  - `/Users/samueljammes/Developer/BilleasyV2/src/main/java/com/v2/billeasy/presentation/auth/AuthController.java`
+  - `/Users/samueljammes/Developer/BilleasyV2/src/main/java/com/v2/billeasy/presentation/contrato/ContratoController.java`
+  - `/Users/samueljammes/Developer/BilleasyV2/src/main/java/com/v2/billeasy/application/contrato/management/CriarContratoInput.java`
 
 ## Regra de integracao
 
@@ -36,14 +35,16 @@ Este documento trava o alinhamento entre os botoes principais do app iOS e as ro
   - `GET /api/assinaturas/minha/cotas`
 - No iOS, o fluxo de contratacao do plano e dos creditos foi centralizado na web:
   - CTA publico abre `GET /cadastro`
-  - CTAs autenticados do "Meu Plano" primeiro chamam `POST /api/auth/mobile-web-handoff`
-  - o backend devolve `handoffUrl`
-  - o app abre `GET /api/auth/mobile-handoff?token=...` no navegador externo
-  - o backend seta cookies web e redireciona direto para `/meu-plano`
+  - CTAs autenticados do "Meu Plano" primeiro chamam `POST /auth/mobile-handoff`
+  - o backend devolve `token`
+  - o app abre `GET /handoff?token=...&next=/app/conta/plano` no navegador externo
+  - a web troca o token em `POST /auth/handoff-exchange`, seta cookies web e redireciona direto para `/app/conta/plano`
+- Em Debug, o app aponta `FRONTEND_BASE_URL` para `http://localhost:3000`, onde o frontend V2 local deve estar rodando.
+- Em Release, `FRONTEND_BASE_URL` deve ser o deploy publico do frontend V2; o host V1 nao contem as rotas `/handoff` + `/app/localizar-devedor`.
 - O menu lateral do iOS nao exibe mais "Meu Plano".
 - Os atalhos de "Localizar Devedor" no iOS agora usam o mesmo handoff autenticado:
-  - `POST /api/auth/mobile-web-handoff` com `{"redirect":"/localizar"}`
-  - seguido da abertura da `handoffUrl` devolvida pelo backend
+  - `POST /auth/mobile-handoff`
+  - seguido da abertura de `/handoff?token=...&next=/app/localizar-devedor`
 - O backend atual continua devolvendo `billingProvider` em `GET /api/assinaturas/minha`, mas o app iOS nao faz mais compra in-app.
 - Download e assinatura devem usar:
   - `GET /api/contratos/{id}/documento.pdf`
@@ -73,10 +74,10 @@ Este documento trava o alinhamento entre os botoes principais do app iOS e as ro
 | `contracts.creditor.cepLookupButton` | Endereço do credor em Novo Contrato | `Features/Contracts/ContractsViewController.swift` | `GET /api/enderecos/cep/{cep}` | Sem body. Preenche preview de logradouro, bairro, cidade e estado para manter o mesmo padrão do web no lado do credor. |
 | `contracts.debtor.cepLookupButton` | Endereço do devedor em Novo Contrato | `Features/Contracts/ContractsViewController.swift` | `GET /api/enderecos/cep/{cep}` | Sem body. Preenche preview de logradouro, bairro, cidade e estado para manter o mesmo padrão do web no lado do devedor. |
 | `contracts.submitButton` | Novo contrato no iOS atual | `Features/Contracts/ContractsViewController.swift` | `POST /api/contratos/fluxo-ia` | JSON alinhado ao app Kotlin: `empresaId`, `tipoNegocio`, `assunto`, `descricaoAcordo`, `frequenciaPagamento`, `dataPrimeiroVencimento`, `numeroParcelas`, `valorTotal`, `meiosPagamentoAceitos`, `credorNome`, `credorCpfCnpj`, `credorTelefone`, `credorTipoPessoa`, `credorChavePix`, `credorTipoChavePix`, `credorCep`, `credorNumero`, `credorComplemento?`, `devedorNome`, `devedorCpfCnpj`, `devedorTelefone`, `devedorEmail`, `devedorCep`, `devedorNumero`, `devedorComplemento?`. |
-| `tab.locate` / `menu.locate` | Localizar Devedor | `Features/Dashboard/MainTabBarController.swift` | `POST /api/auth/mobile-web-handoff` -> `GET /api/auth/mobile-handoff?token=...` | JSON `{ "redirect": "/localizar" }`. O backend cria a sessao web e redireciona direto para a consulta na web. |
-| `subscription.upgrade` | Meu Plano | `Features/Profile/MeuPlanoViewController.swift` | `POST /api/auth/mobile-web-handoff` -> `GET /api/auth/mobile-handoff?token=...` | JSON `{ "redirect": "/meu-plano" }`. O app abre o site ja autenticado em `Meu Plano`. |
-| `subscription.addAddon` | Meu Plano | `Features/Profile/MeuPlanoViewController.swift` | `POST /api/auth/mobile-web-handoff` -> `GET /api/auth/mobile-handoff?token=...` | JSON `{ "redirect": "/meu-plano" }`. A compra de creditos extras foi centralizada na web com sessao reaproveitada. |
-| `subscription.cancel` | Meu Plano | `Features/Profile/MeuPlanoViewController.swift` | `POST /api/auth/mobile-web-handoff` -> `GET /api/auth/mobile-handoff?token=...` | JSON `{ "redirect": "/meu-plano" }`. Cancelamento e alteracoes de cobranca ficam no site, sem relogar no navegador. |
+| `tab.locate` / `menu.locate` | Localizar Devedor | `Features/Dashboard/MainTabBarController.swift` | `POST /auth/mobile-handoff` -> `GET /handoff?token=...&next=/app/localizar-devedor` | Sem body. O backend cria um token efemero; a web troca por cookies e redireciona direto para a consulta. |
+| `subscription.upgrade` | Meu Plano | `Features/Profile/MeuPlanoViewController.swift` | `POST /auth/mobile-handoff` -> `GET /handoff?token=...&next=/app/conta/plano` | Sem body. O app abre o site ja autenticado em `Meu Plano`. |
+| `subscription.addAddon` | Meu Plano | `Features/Profile/MeuPlanoViewController.swift` | `POST /auth/mobile-handoff` -> `GET /handoff?token=...&next=/app/conta/plano` | Sem body. A compra de creditos extras foi centralizada na web com sessao reaproveitada. |
+| `subscription.cancel` | Meu Plano | `Features/Profile/MeuPlanoViewController.swift` | `POST /auth/mobile-handoff` -> `GET /handoff?token=...&next=/app/conta/plano` | Sem body. Cancelamento e alteracoes de cobranca ficam no site, sem relogar no navegador. |
 | abrir contrato remoto | Modais de contrato credor/devedor | `Domain/Portal/PortalActionsService.swift` | `GET /api/contratos/{id}/documento.pdf` | Sem body. O app obtém o arquivo `application/pdf` e abre a visualização interna do contrato. |
 | assinar como credor | Modal do credor | `Domain/Portal/PortalActionsService.swift` | `POST /api/contratos/{id}/assinar-credor` | JSON de assinatura eletronica do app. |
 | assinar como devedor | Modal do devedor | `Domain/Portal/PortalActionsService.swift` | `POST /api/contratos/{id}/assinar-devedor` | JSON de assinatura eletronica do app. |

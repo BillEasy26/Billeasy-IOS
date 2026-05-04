@@ -158,6 +158,37 @@ final class PortalDataService {
         let mfaHabilitado: Bool?
         let emailVerificado: Bool?
         let tipoUsuario: String?
+
+        private enum CodingKeys: String, CodingKey {
+            case id
+            case nome
+            case nomeCompleto
+            case email
+            case telefone
+            case status
+            case situacao
+            case mfaHabilitado
+            case doisFatoresAtivo
+            case emailVerificado
+            case tipoUsuario
+            case papel
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            id = try container.decode(String.self, forKey: .id)
+            nome = try container.decodeIfPresent(String.self, forKey: .nome)
+                ?? container.decodeIfPresent(String.self, forKey: .nomeCompleto)
+            email = try container.decodeIfPresent(String.self, forKey: .email)
+            telefone = try container.decodeIfPresent(String.self, forKey: .telefone)
+            status = try container.decodeIfPresent(String.self, forKey: .status)
+                ?? container.decodeIfPresent(String.self, forKey: .situacao)
+            mfaHabilitado = try container.decodeIfPresent(Bool.self, forKey: .mfaHabilitado)
+                ?? container.decodeIfPresent(Bool.self, forKey: .doisFatoresAtivo)
+            emailVerificado = try container.decodeIfPresent(Bool.self, forKey: .emailVerificado)
+            tipoUsuario = try container.decodeIfPresent(String.self, forKey: .tipoUsuario)
+                ?? container.decodeIfPresent(String.self, forKey: .papel)
+        }
     }
 
     private struct UserDetailsResponse: Decodable {
@@ -167,6 +198,31 @@ final class PortalDataService {
         let telefone: String?
         let cpfCnpjEnc: String?
         let status: String?
+
+        private enum CodingKeys: String, CodingKey {
+            case id
+            case nome
+            case nomeCompleto
+            case email
+            case telefone
+            case cpfCnpjEnc
+            case documento
+            case status
+            case situacao
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            id = try container.decode(String.self, forKey: .id)
+            nome = try container.decodeIfPresent(String.self, forKey: .nome)
+                ?? container.decodeIfPresent(String.self, forKey: .nomeCompleto)
+            email = try container.decodeIfPresent(String.self, forKey: .email)
+            telefone = try container.decodeIfPresent(String.self, forKey: .telefone)
+            cpfCnpjEnc = try container.decodeIfPresent(String.self, forKey: .cpfCnpjEnc)
+                ?? container.decodeIfPresent(String.self, forKey: .documento)
+            status = try container.decodeIfPresent(String.self, forKey: .status)
+                ?? container.decodeIfPresent(String.self, forKey: .situacao)
+        }
     }
 
     private struct UserAttachmentResponse: Decodable {
@@ -265,7 +321,7 @@ final class PortalDataService {
         return makePortalDebtPage(from: response, feed: .payable, page: page, size: size)
     }
 
-    /// Aqui eu monto o perfil remoto combinando `/session/me` com o detalhe de usuário quando disponível.
+    /// Aqui eu monto o perfil remoto combinando `/auth/me` com o detalhe de usuário quando disponível.
     func fetchProfile() async throws -> PortalUserProfile {
         guard isRemoteMode else {
             throw PortalDataServiceError.integrationUnavailable

@@ -24,16 +24,18 @@
 
 - O fluxo de contratacao do `Meu Plano` no iOS abre a versao web do BillEasy.
 - O item `Meu Plano` nao aparece mais no menu lateral do app; o acesso comercial ficou fora da navegacao principal mobile.
-- O atalho `Localizar Devedor` no app abre a versao web autenticada em `/localizar`.
+- O atalho `Localizar Devedor` no app abre a versao web autenticada em `/app/localizar-devedor`.
 - O app usa:
   - `FRONTEND_BASE_URL` para o CTA publico de "Comece gratis" via `GET /cadastro`
   - `API_BASE_URL` para o handoff autenticado do mobile:
-    - `POST /api/auth/mobile-web-handoff`
-    - resposta com `handoffUrl`
-    - abertura de `GET /api/auth/mobile-handoff?token=...` no navegador
-- O backend deve redirecionar o navegador ja autenticado para:
-  - `/meu-plano`
-  - `/localizar`
+    - `POST /auth/mobile-handoff`
+    - resposta com `token`
+    - abertura de `GET /handoff?token=...&next=<rota-web>` no navegador
+- A web deve trocar o token em `POST /auth/handoff-exchange` e redirecionar o navegador ja autenticado para:
+  - `/app/conta/plano`
+  - `/app/localizar-devedor`
+- Em Debug, `FRONTEND_BASE_URL` aponta para o frontend V2 local em `http://localhost:3000`.
+- Em Release/CI, `FRONTEND_BASE_URL` precisa apontar para o deploy publico do frontend V2; o host antigo `bill-easy-v1.vercel.app` nao possui as rotas de handoff V2.
 - `FRONTEND_BASE_URL` e `API_BASE_URL` precisam estar configurados no build de debug e release.
 
 ## CI

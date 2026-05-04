@@ -240,19 +240,18 @@ struct PortalDataServiceTests {
                 throw URLError(.badURL)
             }
 
-            if url.path == "/api/session/me" {
+            if url.path == "/auth/me" {
                 return jsonResponse(
                     url: url,
                     json: """
                     {
                       "id": "usr-123",
-                      "nome": "Samuel Jammes",
+                      "nomeCompleto": "Samuel Jammes",
                       "email": "samuel@billeasy.ai",
-                      "telefone": "(11) 99999-0000",
-                      "status": "ATIVO",
-                      "mfaHabilitado": true,
+                      "situacao": "ATIVA",
+                      "doisFatoresAtivo": true,
                       "emailVerificado": true,
-                      "tipoUsuario": "ADMIN_CREDOR"
+                      "papel": "ADMIN"
                     }
                     """
                 )
@@ -264,11 +263,11 @@ struct PortalDataServiceTests {
                     json: """
                     {
                       "id": "usr-123",
-                      "nome": "Samuel Jammes",
+                      "nomeCompleto": "Samuel Jammes",
                       "email": "samuel@billeasy.ai",
                       "telefone": "(11) 99999-0000",
-                      "cpfCnpjEnc": "123.456.789-00",
-                      "status": "ATIVO"
+                      "documento": "123.456.789-00",
+                      "situacao": "ATIVA"
                     }
                     """
                 )
@@ -293,7 +292,7 @@ struct PortalDataServiceTests {
         #expect(profile.email == "samuel@billeasy.ai")
         #expect(profile.phone == "(11) 99999-0000")
         #expect(profile.document == "123.456.789-00")
-        #expect(profile.userType == "ADMIN_CREDOR")
+        #expect(profile.userType == "ADMIN")
         #expect(profile.emailVerified == true)
         #expect(profile.mfaEnabled == true)
     }
@@ -327,19 +326,18 @@ struct PortalDataServiceTests {
                 )
             }
 
-            if url.path == "/api/session/me" {
+            if url.path == "/auth/me" {
                 return jsonResponse(
                     url: url,
                     json: """
                     {
                       "id": "usr-123",
-                      "nome": "Samuel Jammes",
+                      "nomeCompleto": "Samuel Jammes",
                       "email": "samuel@billeasy.ai",
-                      "telefone": "(11) 99999-0000",
-                      "status": "ATIVO",
-                      "mfaHabilitado": false,
+                      "situacao": "ATIVA",
+                      "doisFatoresAtivo": false,
                       "emailVerificado": true,
-                      "tipoUsuario": "USUARIO"
+                      "papel": "USUARIO"
                     }
                     """
                 )
@@ -351,11 +349,11 @@ struct PortalDataServiceTests {
                     json: """
                     {
                       "id": "usr-123",
-                      "nome": "Samuel Jammes",
+                      "nomeCompleto": "Samuel Jammes",
                       "email": "samuel@billeasy.ai",
                       "telefone": "(11) 99999-0000",
-                      "cpfCnpjEnc": "123.456.789-00",
-                      "status": "ATIVO"
+                      "documento": "123.456.789-00",
+                      "situacao": "ATIVA"
                     }
                     """
                 )
@@ -434,19 +432,18 @@ struct PortalDataServiceTests {
                 )
             }
 
-            if url.path == "/api/session/me" {
+            if url.path == "/auth/me" {
                 return jsonResponse(
                     url: url,
                     json: """
                     {
                       "id": "usr-123",
-                      "nome": "Samuel Jammes",
+                      "nomeCompleto": "Samuel Jammes",
                       "email": "samuel@billeasy.ai",
-                      "telefone": "(11) 99999-0000",
-                      "status": "ATIVO",
-                      "mfaHabilitado": false,
+                      "situacao": "ATIVA",
+                      "doisFatoresAtivo": false,
                       "emailVerificado": true,
-                      "tipoUsuario": "USUARIO"
+                      "papel": "USUARIO"
                     }
                     """
                 )
@@ -458,11 +455,11 @@ struct PortalDataServiceTests {
                     json: """
                     {
                       "id": "usr-123",
-                      "nome": "Samuel Jammes",
+                      "nomeCompleto": "Samuel Jammes",
                       "email": "samuel@billeasy.ai",
                       "telefone": "(11) 99999-0000",
-                      "cpfCnpjEnc": "",
-                      "status": "ATIVO"
+                      "documento": "",
+                      "situacao": "ATIVA"
                     }
                     """
                 )

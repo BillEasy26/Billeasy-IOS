@@ -152,7 +152,7 @@ struct AuthServiceTests {
                 )!
                 return (response, Data())
 
-            case "/api/session/me":
+            case "/auth/me":
                 let response = HTTPURLResponse(
                     url: url,
                     statusCode: 401,
@@ -178,7 +178,7 @@ struct AuthServiceTests {
 
         do {
             _ = try await service.login(email: "samuel@example.com", senha: "Senha@123")
-            Issue.record("Expected remote login to fail when /api/session/me is unauthorized.")
+            Issue.record("Expected remote login to fail when /auth/me is unauthorized.")
         } catch let error as AuthServiceError {
             #expect(error.errorDescription == "Não foi possível validar sua sessão. Faça login novamente.")
         } catch {
@@ -326,7 +326,7 @@ struct AuthServiceTests {
                 return (response, Data())
             }
 
-            if url.path == "/api/session/me" {
+            if url.path == "/auth/me" {
                 let response = HTTPURLResponse(
                     url: url,
                     statusCode: 200,
@@ -336,7 +336,7 @@ struct AuthServiceTests {
                 let payload = """
                 {
                   "id":"user-google-123",
-                  "nome":"Samuel Jammes",
+                  "nomeCompleto":"Samuel Jammes",
                   "email":"samuel@example.com",
                   "telefone":"11999999999",
                   "empresaId":null,
@@ -482,7 +482,7 @@ struct RemoteSecurityContextTests {
 
         context.captureSecurityState(from: loginResponse)
 
-        let sessionURL = try #require(URL(string: "https://api.example.com/api/session/me"))
+        let sessionURL = try #require(URL(string: "https://api.example.com/auth/me"))
         let sessionResponse = try #require(
             HTTPURLResponse(
                 url: sessionURL,

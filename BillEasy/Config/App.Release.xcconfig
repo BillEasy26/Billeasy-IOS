@@ -1,4 +1,5 @@
 #include "App.Shared.xcconfig"
 #include? "Secrets.xcconfig"
 
-// Release uses the same public endpoints. AI token must be injected via Secrets.xcconfig outside the repo.
+// Release/CI precisa injetar FRONTEND_BASE_URL com o deploy publico do frontend V2 via Secrets.xcconfig.
+// AI token must be injected via Secrets.xcconfig outside the repo.

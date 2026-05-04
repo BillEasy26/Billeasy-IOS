@@ -129,18 +129,18 @@ struct BillEasyTests {
 
     @Test("Fluxos web públicos e rotas de handoff ficam alinhados com o backend")
     func frontendWebRoutesStayConsistent() {
-        let baseURL = URL(string: "https://bill-easy-v1.vercel.app")
+        let baseURL = URL(string: "http://localhost:3000")
         let loginURL = FrontendWebRouteBuilder.url(
             for: .login(email: "user@billeasy.com.br"),
             baseURL: baseURL
         )
         let registerURL = FrontendWebRouteBuilder.url(for: .register, baseURL: baseURL)
 
-        #expect(registerURL?.absoluteString == "https://bill-easy-v1.vercel.app/cadastro")
+        #expect(registerURL?.absoluteString == "http://localhost:3000/cadastro")
         #expect(FrontendWebRouteBuilder.hasURL(for: .login(email: nil), baseURL: baseURL))
-        #expect(APIRoutes.Auth.mobileWebHandoff == "/api/auth/mobile-web-handoff")
-        #expect(PortalWebHandoffDestination.myPlan.redirectPath == "/meu-plano")
-        #expect(PortalWebHandoffDestination.debtorLocator.redirectPath == "/localizar")
+        #expect(APIRoutes.Auth.mobileHandoff == "/auth/mobile-handoff")
+        #expect(PortalWebHandoffDestination.myPlan.nextPath == "/app/conta/plano")
+        #expect(PortalWebHandoffDestination.debtorLocator.nextPath == "/app/localizar-devedor")
 
         let loginComponents = loginURL.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false) }
         let loginItems = Dictionary(uniqueKeysWithValues: (loginComponents?.queryItems ?? []).map { ($0.name, $0.value ?? "") })

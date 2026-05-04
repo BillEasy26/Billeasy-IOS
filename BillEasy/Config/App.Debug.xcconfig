@@ -1,4 +1,7 @@
 #include "App.Shared.xcconfig"
-#include? "Secrets.xcconfig"
 
-// Debug uses the same public endpoints. Override locally via Secrets.xcconfig.
+// Em celular físico, localhost não resolve — use sempre a URL de produção.
+// Para testar no simulador com frontend local, troque por: http:/$()/localhost:3000
+// FRONTEND_BASE_URL = http:/$()/localhost:3000
+
+#include? "Secrets.xcconfig"

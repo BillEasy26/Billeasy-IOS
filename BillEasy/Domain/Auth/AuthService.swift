@@ -109,15 +109,49 @@ final class AuthService {
 
     // MARK: - Payloads de resposta (privados)
 
-    /// Dados do usuário retornados pelo endpoint `/api/session/me`.
+    /// Dados do usuário retornados pelo endpoint de sessão.
+    /// Aceita o contrato legado (`nome`, `telefone`, etc.) e o contrato atual do backend (`nomeCompleto`, `papel`).
     private struct RemoteSessionPayload: Decodable {
         let id: String
-        let nome: String
+        let nome: String?
         let email: String
         let telefone: String?
         let empresaId: String?
         let perfilDevedor: Bool?
         let papeis: [String]?
+        let papel: String?
+
+        var normalizedRoles: [String] {
+            var seen = Set<String>()
+            return ((papeis ?? []) + [papel].compactMap { $0 })
+                .compactMap { $0.nilIfEmpty }
+                .filter { seen.insert($0).inserted }
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case id
+            case nome
+            case nomeCompleto
+            case email
+            case telefone
+            case empresaId
+            case perfilDevedor
+            case papeis
+            case papel
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            id = try container.decode(String.self, forKey: .id)
+            nome = try container.decodeIfPresent(String.self, forKey: .nome)
+                ?? container.decodeIfPresent(String.self, forKey: .nomeCompleto)
+            email = try container.decode(String.self, forKey: .email)
+            telefone = try container.decodeIfPresent(String.self, forKey: .telefone)
+            empresaId = try container.decodeIfPresent(String.self, forKey: .empresaId)
+            perfilDevedor = try container.decodeIfPresent(Bool.self, forKey: .perfilDevedor)
+            papeis = try container.decodeIfPresent([String].self, forKey: .papeis)
+            papel = try container.decodeIfPresent(String.self, forKey: .papel)
+        }
     }
 
     /// Resposta genérica de endpoints que retornam apenas uma mensagem de texto.
@@ -200,7 +234,7 @@ final class AuthService {
     }
 
     /// Autentica com e-mail e senha.
-    /// Em modo remoto, chama `/auth/login` e em seguida `/api/session/me` para montar a sessão.
+    /// Em modo remoto, chama `/auth/login` e em seguida o endpoint de sessão para montar a sessão.
     func login(email: String, senha: String) async throws -> AuthSession {
         if isLocalMode {
             return try localStore.login(email: email, senha: senha)
@@ -305,7 +339,7 @@ final class AuthService {
     }
 
     /// Autentica com uma conta Google. Envia os dados validados pelo OAuth ao backend
-    /// e em seguida busca a sessão completa em `/api/session/me`.
+    /// e em seguida busca a sessão completa no endpoint de sessão.
     func loginWithGoogle(
         googleId: String,
         email: String,
@@ -414,7 +448,7 @@ final class AuthService {
         }
     }
 
-    /// Busca os dados completos da sessão em `/api/session/me` após um login bem-sucedido.
+    /// Busca os dados completos da sessão após um login bem-sucedido.
     /// Os parâmetros `fallback*` são usados se o endpoint retornar campos ausentes.
     private func fetchRemoteSession(
         provider: AuthProvider,
@@ -426,13 +460,13 @@ final class AuthService {
             let payload: RemoteSessionPayload = try await apiClient.request(target: .backend, path: APIRoutes.Session.me)
             return makeSession(
                 userID: payload.id,
-                displayName: payload.nome.nilIfEmpty ?? fallbackDisplayName,
+                displayName: payload.nome?.nilIfEmpty ?? fallbackDisplayName,
                 email: payload.email.nilIfEmpty ?? fallbackEmail,
                 provider: provider,
                 avatarURL: fallbackAvatarURL,
                 empresaID: payload.empresaId?.nilIfEmpty,
                 phone: payload.telefone?.nilIfEmpty,
-                roles: payload.papeis ?? [],
+                roles: payload.normalizedRoles,
                 hasDebtorProfile: payload.perfilDevedor ?? false
             )
         } catch let error as RemoteAPIClientError {
